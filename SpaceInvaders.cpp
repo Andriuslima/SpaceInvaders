@@ -1,15 +1,62 @@
 #include <iostream>
 #include <windows.h>
-#include "GL\glut.h"
-
+#include "gl\glut.h"
 
 using std::cout;
 using std::endl;
 
 using namespace std;
 
-int WIDTH = 1500;
-int HEIGHT = 1000;
+int WIDTH = 1200;
+int HEIGHT = 800;
+float EARTH_HEIGHT = 100.0;
+
+int ShooterJump = 20;
+float SHOOTER_SIZE = 60.0;
+int PosShooterX = WIDTH/2;
+
+void drawEarth(){
+    glPushMatrix();
+        glColor3f (0.0, 1.0, 0.0);
+
+        glBegin(GL_TRIANGLES);
+            glVertex2f(0.0, 0.0);
+            glVertex2f(0.0, EARTH_HEIGHT);
+            glVertex2f(WIDTH, EARTH_HEIGHT);
+        glEnd();
+        glBegin(GL_TRIANGLES);
+            glVertex2f(0.0, 0.0);
+            glVertex2f(WIDTH, EARTH_HEIGHT);
+            glVertex2f(WIDTH, 0.0);
+        glEnd();
+    glPopMatrix();
+}
+
+void moveShooterRight(){
+    if( (PosShooterX+(SHOOTER_SIZE/2)) >= WIDTH ){
+        return;
+    } else {
+        PosShooterX += ShooterJump;
+    }
+}
+
+void moveShooterLeft(){
+    if( (PosShooterX-(SHOOTER_SIZE/2)) <= 0 ){
+        return;
+    } else {
+        PosShooterX -= ShooterJump;
+    }
+}
+
+void drawShooter(){
+    glPushMatrix();
+        glColor3f(100.0, 0.0, 0.0);
+        glPointSize(SHOOTER_SIZE);
+        glBegin(GL_POINTS);
+            glVertex2f(0.0, 30.0);
+        glEnd();
+    glPopMatrix();
+}
 
 void display( void ){
     // Limpa a tela coma cor de fundo
@@ -18,11 +65,21 @@ void display( void ){
     // Define os limites logicos da area OpenGL dentro da Janela
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glOrtho(0,10,0,10,0,1);
+    glOrtho(0,WIDTH,0,HEIGHT,0,1);
 
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     // Coloque aqui as chamadas das rotinas que desenha os objetos
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    drawEarth();
+    glPushMatrix();
+        glTranslatef(PosShooterX, EARTH_HEIGHT, 0); // Desenha
+        drawShooter();
+    glPopMatrix();
+
+
+
+
 
     glutSwapBuffers();
 }
@@ -35,6 +92,14 @@ void arrow_keys(int a_keys, int x, int y){
     case GLUT_KEY_DOWN: //Se pressionar DOWN reposiciona a janela
         glutPositionWindow (50,50);
         glutReshapeWindow ( 700, 500 );
+        break;
+    case GLUT_KEY_RIGHT: // Se pressionar RIGHT move o atirador para direita
+        moveShooterRight();
+        glutPostRedisplay();
+        break;
+    case GLUT_KEY_LEFT: // Se pressionar LEFT move o atirador para esquerda
+        moveShooterLeft();
+        glutPostRedisplay();
         break;
     default:
         break;
@@ -61,7 +126,7 @@ void reshape(int w, int h){
     // Define os limites l�gicos da �rea OpenGL dentro da Janela
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glOrtho(0,10,0,10,0,1);
+    glOrtho(0,WIDTH,0,HEIGHT,0,1);
 }
 
 void init(void){
