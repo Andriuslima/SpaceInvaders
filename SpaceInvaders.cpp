@@ -15,6 +15,16 @@ int ShooterJump = 20;
 float SHOOTER_SIZE = 60.0;
 int PosShooterX = WIDTH/2;
 
+void drawBullet(){
+    glPushMatrix();
+        glColor3f(0.0, 0.0, 0.0);
+        glPointSize(60.0);
+        glBegin(GL_POINTS);
+            glVertex2f(0.0, 0.0);
+        glEnd();
+    glPopMatrix();
+}
+
 void drawEarth(){
     glPushMatrix();
         glColor3f (0.0, 1.0, 0.0);
@@ -30,6 +40,14 @@ void drawEarth(){
             glVertex2f(WIDTH, 0.0);
         glEnd();
     glPopMatrix();
+}
+
+void shoot(int pos){
+    glPushMatrix();
+        glTranslatef((float)pos, EARTH_HEIGHT+(SHOOTER_SIZE/2), 0.0);
+        drawBullet();
+    glPopMatrix();
+    cout << "Atira na posicao horizontal: " << pos << endl;
 }
 
 void moveShooterRight(){
@@ -58,6 +76,10 @@ void drawShooter(){
     glPopMatrix();
 }
 
+void Animation(){
+
+}
+
 void display( void ){
     // Limpa a tela coma cor de fundo
     glClear(GL_COLOR_BUFFER_BIT);
@@ -76,10 +98,6 @@ void display( void ){
         glTranslatef(PosShooterX, EARTH_HEIGHT, 0); // Desenha
         drawShooter();
     glPopMatrix();
-
-
-
-
 
     glutSwapBuffers();
 }
@@ -111,6 +129,9 @@ void keyboard(unsigned char key, int x, int y){
     case 27: //Termina o programa qdo a tecla ESC for pressionada
         exit ( 0 );
         break;
+    case ' ': // Atira
+        shoot(PosShooterX);
+        glutPostRedisplay();
     default:
         break;
     }
@@ -176,6 +197,8 @@ int main(int argc, char** argv)
     // automaticamente sempre o usu�rio
     // pressionar uma tecla especial
     glutSpecialFunc(arrow_keys);
+
+    glutIdleFunc(Animation);
 
     // inicia o tratamento dos eventos
     glutMainLoop ( );
