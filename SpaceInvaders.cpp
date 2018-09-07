@@ -11,45 +11,78 @@ int WIDTH = 1200;
 int HEIGHT = 800;
 float EARTH_HEIGHT = 100.0;
 
-int ShooterJump = 20;
+int ShooterJump = 10;
+int control = 0;
+
 float SHOOTER_SIZE = 60.0;
 int PosShooterX = WIDTH/2;
+int PosBulletY = 100;
 
-void drawBullet(){
-    glPushMatrix();
-        glColor3f(0.0, 0.0, 0.0);
-        glPointSize(60.0);
-        glBegin(GL_POINTS);
-            glVertex2f(0.0, 0.0);
-        glEnd();
-    glPopMatrix();
+void drawBullet(int a){
+    if (a == 0)
+    {
+        /*
+        glPushMatrix();
+            glColor3f(0.0, 0.0, 0.0);
+            glPointSize(60.0);
+            glBegin(GL_POINTS);
+            glVertex2f(200.0, 200.0);
+            glEnd();
+        glPopMatrix();
+        */
+    }
+    else
+    {
+        glPushMatrix();
+            glColor3f(0.4, 0.9, 0.3);
+            glPointSize(60.0);
+            glBegin(GL_POINTS);
+                glVertex2f(0.0, PosBulletY);
+            glEnd();
+
+        glPopMatrix();
+    }
+
 }
 
 void drawEarth(){
     glPushMatrix();
         glColor3f (0.0, 1.0, 0.0);
-
+        /*
         glBegin(GL_TRIANGLES);
             glVertex2f(0.0, 0.0);
             glVertex2f(0.0, EARTH_HEIGHT);
             glVertex2f(WIDTH, EARTH_HEIGHT);
         glEnd();
+        */
+        /*
         glBegin(GL_TRIANGLES);
             glVertex2f(0.0, 0.0);
             glVertex2f(WIDTH, EARTH_HEIGHT);
             glVertex2f(WIDTH, 0.0);
         glEnd();
+        */
+        glBegin(GL_POLYGON);
+            glVertex3f (0.0, 0.0, 0.0);
+            glVertex3f (0.0, EARTH_HEIGHT, 0.0);
+            glVertex3f (WIDTH, EARTH_HEIGHT, 0.0);
+            glVertex3f (WIDTH, 0.0, 0.0);
+        glEnd();
+
     glPopMatrix();
+
 }
 
 void shoot(int pos){
+    control = 1;
     glPushMatrix();
         glTranslatef((float)pos, EARTH_HEIGHT+(SHOOTER_SIZE/2), 0.0);
-        drawBullet();
+        drawBullet(control);
     glPopMatrix();
     cout << "Atira na posicao horizontal: " << pos << endl;
 }
 
+//Aleteração aceleração
 void moveShooterRight(){
     if( (PosShooterX+(SHOOTER_SIZE/2)) >= WIDTH ){
         return;
@@ -77,6 +110,7 @@ void drawShooter(){
 }
 
 void Animation(){
+        //PosBulletY += PosBulletY - 100;
 
 }
 
@@ -93,10 +127,11 @@ void display( void ){
     // Coloque aqui as chamadas das rotinas que desenha os objetos
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    drawEarth();
+    drawEarth();//?
     glPushMatrix();
         glTranslatef(PosShooterX, EARTH_HEIGHT, 0); // Desenha
         drawShooter();
+        drawBullet(control);
     glPopMatrix();
 
     glutSwapBuffers();
@@ -117,6 +152,7 @@ void arrow_keys(int a_keys, int x, int y){
         break;
     case GLUT_KEY_LEFT: // Se pressionar LEFT move o atirador para esquerda
         moveShooterLeft();
+        Animation();
         glutPostRedisplay();
         break;
     default:
@@ -182,7 +218,9 @@ int main(int argc, char** argv)
     // o redimensionamento da janela. A funcao "reshape"
     // ser� chamada automaticamente quando
     // o usu�rio alterar o tamanho da janela
-    glutReshapeFunc(reshape);
+
+
+    glutReshapeFunc(reshape);//Não ta funcionando
 
     // Define que o tratador de evento para
     // as teclas. A funcao "keyboard"
