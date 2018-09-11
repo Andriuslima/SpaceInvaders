@@ -12,37 +12,24 @@ int HEIGHT = 800;
 float EARTH_HEIGHT = 100.0;
 
 int ShooterJump = 10;
-int control = 0;
+int BulletJump = 2;
+int Shooted = 0;
+int CanShoot = 1;
 
 float SHOOTER_SIZE = 60.0;
+float BULLET_SIZE = 30.0;
 int PosShooterX = WIDTH/2;
-int PosBulletY = 100;
+int PosBulletY = EARTH_HEIGHT + SHOOTER_SIZE + (BULLET_SIZE / 2);
+int PosBulletX = 0;
 
-void drawBullet(int a){
-    if (a == 0)
-    {
-        /*
-        glPushMatrix();
-            glColor3f(0.0, 0.0, 0.0);
-            glPointSize(60.0);
-            glBegin(GL_POINTS);
-            glVertex2f(200.0, 200.0);
-            glEnd();
-        glPopMatrix();
-        */
-    }
-    else
-    {
-        glPushMatrix();
-            glColor3f(0.4, 0.9, 0.3);
-            glPointSize(60.0);
-            glBegin(GL_POINTS);
-                glVertex2f(0.0, PosBulletY);
-            glEnd();
-
-        glPopMatrix();
-    }
-
+void drawBullet(){
+    glPushMatrix();
+        glColor3f(0.4, 0.9, 0.3);
+        glPointSize(BULLET_SIZE);
+        glBegin(GL_POINTS);
+            glVertex2f(0.0, 0.0);
+        glEnd();
+    glPopMatrix();
 }
 
 void drawEarth(){
@@ -73,14 +60,14 @@ void drawEarth(){
 
 }
 
-void shoot(int pos){
-    control = 1;
-    glPushMatrix();
-        glTranslatef((float)pos, EARTH_HEIGHT+(SHOOTER_SIZE/2), 0.0);
-        drawBullet(control);
-    glPopMatrix();
-    cout << "Atira na posicao horizontal: " << pos << endl;
-}
+//void shoot(int pos){
+//    control = 1;
+//    glPushMatrix();
+//        glTranslatef((float)pos, EARTH_HEIGHT+(SHOOTER_SIZE/2), 0.0);
+//        drawBullet();
+//    glPopMatrix();
+//    cout << "Atira na posicao horizontal: " << pos << endl;
+//}
 
 //Aleteração aceleração
 void moveShooterRight(){
@@ -100,18 +87,25 @@ void moveShooterLeft(){
 }
 
 void drawShooter(){
-    glPushMatrix();
-        glColor3f(100.0, 0.0, 0.0);
-        glPointSize(SHOOTER_SIZE);
-        glBegin(GL_POINTS);
-            glVertex2f(0.0, 30.0);
-        glEnd();
-    glPopMatrix();
+    glColor3f(100.0, 0.0, 0.0);
+    glPointSize(SHOOTER_SIZE);
+    glBegin(GL_POINTS);
+        glVertex2f(0.0, SHOOTER_SIZE/2);
+    glEnd();
 }
 
 void Animation(){
-        //PosBulletY += PosBulletY - 100;
+    if(PosBulletY >= HEIGHT){
+        PosBulletY = EARTH_HEIGHT + SHOOTER_SIZE + (BULLET_SIZE / 2);
+        CanShoot = 1;
+        Shooted = 0;
+    }
 
+    if(Shooted){
+        PosBulletY += BulletJump;
+    }
+
+    glutPostRedisplay();
 }
 
 void display( void ){
@@ -127,12 +121,23 @@ void display( void ){
     // Coloque aqui as chamadas das rotinas que desenha os objetos
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    drawEarth();//?
+    drawEarth();
+
     glPushMatrix();
         glTranslatef(PosShooterX, EARTH_HEIGHT, 0); // Desenha
         drawShooter();
-        drawBullet(control);
     glPopMatrix();
+
+    if(Shooted && CanShoot){
+        PosBulletX = PosShooterX;
+        CanShoot = 0;
+    }
+    if (Shooted){
+        glPushMatrix();
+            glTranslatef(PosBulletX, PosBulletY, 0);
+            drawBullet();
+        glPopMatrix();
+    }
 
     glutSwapBuffers();
 }
@@ -166,7 +171,8 @@ void keyboard(unsigned char key, int x, int y){
         exit ( 0 );
         break;
     case ' ': // Atira
-        shoot(PosShooterX);
+        //shoot(PosShooterX);
+        Shooted = 1;
         glutPostRedisplay();
     default:
         break;
