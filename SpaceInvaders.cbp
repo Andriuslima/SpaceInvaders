@@ -46,6 +46,7 @@
 			<Add directory="lib" />
 		</Linker>
 		<Unit filename="SpaceInvaders.cpp" />
+		<Unit filename="colors.txt" />
 		<Extensions>
 			<code_completion />
 			<debugger />

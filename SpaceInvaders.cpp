@@ -1,11 +1,17 @@
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <windows.h>
 #include "gl\glut.h"
 
 using std::cout;
 using std::endl;
+using std::string;
 
 using namespace std;
+
+ifstream inFile;
+int x;
 
 int WIDTH = 1200;
 int HEIGHT = 800;
@@ -22,9 +28,77 @@ int PosShooterX = WIDTH/2;
 int PosBulletY = EARTH_HEIGHT + SHOOTER_SIZE + (BULLET_SIZE / 2);
 int PosBulletX = 0;
 
+int NUM_COLORS;
+int POINT_SIZE = 7.0;
+int colors[10][3];
+
+float enemy01PosX = 0;
+float enemy01PosY = 0;
+
+void readColors(){
+    inFile.open("colors.txt");
+    if(!inFile){
+        cout << "Não cconsegui abrir o arquivo das cores";
+        exit(1);
+    }else{
+        cout << "Arquivos das cores aberto" << endl;
+    }
+
+    while(inFile >> x){
+        NUM_COLORS = x;
+        cout << "O numero de cores e: " << NUM_COLORS << endl;
+
+        for(int i = 0; i < NUM_COLORS; i++){
+            int id, r, g, b;
+            inFile >> id >> r >> g >> b;
+            colors[i][0] = r;
+            colors[i][1] = g;
+            colors[i][2] = b;
+            cout << "Cor de ID: " << i << " -> " << colors[i][0] << " " << colors[i][1] << " " << colors[i][2] << endl;
+        }
+    }
+
+    inFile.close();
+}
+
+void drawEnemy01(){
+    inFile.open("enemy01.txt");
+    if(!inFile){
+        cout << "Não cconsegui abrir o arquivo da nave inimiga 01" << endl;
+        exit(1);
+    }//else{
+        //cout << "Arquivo da nave inimiga 01 aberto" << endl;
+    //}
+
+    int altura, largura;
+    inFile >> altura >> largura;
+    //cout << "Dimensoes da nave inimiga 01: " << altura << "x" << largura << endl;
+
+    for(int i = 0; i < altura; i++){ // I e a linha
+        for(int j = 0; j < largura; j++){ // J e a coluna
+            int color;
+            inFile >> color;
+            //cout << "[ " << color << " (" << i << ", " << j << ") ]" << endl;
+
+            glColor3f(colors[color-1][0], colors[color-1][1], colors[color-1][2]);
+
+            enemy01PosX = ((largura - j) * POINT_SIZE);
+            enemy01PosY = ((altura - i) * POINT_SIZE);
+
+            glPointSize(POINT_SIZE);
+            glBegin(GL_POINTS);
+                glVertex2f(enemy01PosX, enemy01PosY);
+            glEnd();
+        }
+    }
+
+
+    inFile.close();
+}
+
 void drawBullet(){
     glPushMatrix();
-        glColor3f(0.4, 0.9, 0.3);
+        glColor3f(0.0, 0.0, 0.0);
         glPointSize(BULLET_SIZE);
         glBegin(GL_POINTS);
             glVertex2f(0.0, 0.0);
@@ -35,20 +109,6 @@ void drawBullet(){
 void drawEarth(){
     glPushMatrix();
         glColor3f (0.0, 1.0, 0.0);
-        /*
-        glBegin(GL_TRIANGLES);
-            glVertex2f(0.0, 0.0);
-            glVertex2f(0.0, EARTH_HEIGHT);
-            glVertex2f(WIDTH, EARTH_HEIGHT);
-        glEnd();
-        */
-        /*
-        glBegin(GL_TRIANGLES);
-            glVertex2f(0.0, 0.0);
-            glVertex2f(WIDTH, EARTH_HEIGHT);
-            glVertex2f(WIDTH, 0.0);
-        glEnd();
-        */
         glBegin(GL_POLYGON);
             glVertex3f (0.0, 0.0, 0.0);
             glVertex3f (0.0, EARTH_HEIGHT, 0.0);
@@ -60,16 +120,6 @@ void drawEarth(){
 
 }
 
-//void shoot(int pos){
-//    control = 1;
-//    glPushMatrix();
-//        glTranslatef((float)pos, EARTH_HEIGHT+(SHOOTER_SIZE/2), 0.0);
-//        drawBullet();
-//    glPopMatrix();
-//    cout << "Atira na posicao horizontal: " << pos << endl;
-//}
-
-//Aleteração aceleração
 void moveShooterRight(){
     if( (PosShooterX+(SHOOTER_SIZE/2)) >= WIDTH ){
         return;
@@ -124,7 +174,12 @@ void display( void ){
     drawEarth();
 
     glPushMatrix();
-        glTranslatef(PosShooterX, EARTH_HEIGHT, 0); // Desenha
+        glTranslatef(WIDTH/2, HEIGHT/2, 0);
+        drawEnemy01();
+    glPopMatrix();
+
+    glPushMatrix();
+        glTranslatef(PosShooterX, EARTH_HEIGHT, 0);
         drawShooter();
     glPopMatrix();
 
@@ -195,6 +250,9 @@ void reshape(int w, int h){
 void init(void){
     // Define a cor do fundo da tela
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    //drawEnemy01();
+
+    readColors();
 }
 
 int main(int argc, char** argv)
