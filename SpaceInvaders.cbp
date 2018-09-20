@@ -47,6 +47,7 @@
 		</Linker>
 		<Unit filename="SpaceInvaders.cpp" />
 		<Unit filename="colors.txt" />
+		<Unit filename="enemy01.txt" />
 		<Extensions>
 			<code_completion />
 			<debugger />
