@@ -46,8 +46,11 @@
 			<Add directory="lib" />
 		</Linker>
 		<Unit filename="SpaceInvaders.cpp" />
+		<Unit filename="bullet.txt" />
+		<Unit filename="cannon.txt" />
 		<Unit filename="colors.txt" />
 		<Unit filename="enemy01.txt" />
+		<Unit filename="enemy02.txt" />
 		<Extensions>
 			<code_completion />
 			<debugger />

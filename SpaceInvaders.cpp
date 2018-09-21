@@ -21,27 +21,26 @@ using namespace std;
 ifstream inFile;
 int x;
 
+int CANNON = 0;
+int BULLET = 1;
+int LIFE = 2;
+int ENEMY01 = 3;
+int ENEMY02 = 4;
+int ENEMY03 = 5;
+int ENEMY04 = 6;
+
 int WIDTH = 1200;
 int HEIGHT = 800;
 float EARTH_HEIGHT = 100.0;
+int POINT_SIZE = 7.0;
 
 int ShooterJump = 10;
 int BulletJump = 2;
 int Shooted = 0;
 int CanShoot = 1;
 
-float SHOOTER_SIZE = 60.0;
-float BULLET_SIZE = 30.0;
-int PosShooterX = WIDTH/2;
-int PosBulletY = EARTH_HEIGHT + SHOOTER_SIZE + (BULLET_SIZE / 2);
-int PosBulletX = 0;
-
 int NUM_COLORS;
-int POINT_SIZE = 7.0;
 int colors[10][3];
-
-float enemy01PosX = 0;
-float enemy01PosY = 0;
 
 typedef struct{
     int x, y;
@@ -56,7 +55,7 @@ Object objects[7];
 void readColors(){
     inFile.open("colors.txt");
     if(!inFile){
-        cout << "Não cconsegui abrir o arquivo das cores";
+        cout << "Não consegui abrir o arquivo das cores";
         exit(1);
     }else{
         cout << "Arquivos das cores aberto" << endl;
@@ -64,15 +63,12 @@ void readColors(){
 
     while(inFile >> x){
         NUM_COLORS = x;
-        cout << "O numero de cores e: " << NUM_COLORS << endl;
-
         for(int i = 0; i < NUM_COLORS; i++){
             int id, r, g, b;
             inFile >> id >> r >> g >> b;
             colors[i][0] = r;
             colors[i][1] = g;
             colors[i][2] = b;
-            cout << "Cor de ID: " << i << " -> " << colors[i][0] << " " << colors[i][1] << " " << colors[i][2] << endl;
         }
     }
 
@@ -89,7 +85,7 @@ void drawObject(Object o){
             glColor3f(colors[color-1][0], colors[color-1][1], colors[color-1][2]);
 
             int x = ((j+1 - largura/2) * POINT_SIZE);
-            int y = ((altura/2 - i+1) * POINT_SIZE);
+            int y = ((altura - i-1) * POINT_SIZE);
 
             glPointSize(POINT_SIZE);
             glBegin(GL_POINTS);
@@ -97,16 +93,6 @@ void drawObject(Object o){
             glEnd();
         }
     }
-}
-
-void drawBullet(){
-    glPushMatrix();
-        glColor3f(0.0, 0.0, 0.0);
-        glPointSize(BULLET_SIZE);
-        glBegin(GL_POINTS);
-            glVertex2f(0.0, 0.0);
-        glEnd();
-    glPopMatrix();
 }
 
 void drawEarth(){
@@ -124,38 +110,30 @@ void drawEarth(){
 }
 
 void moveShooterRight(){
-    if( (PosShooterX+(SHOOTER_SIZE/2)) >= WIDTH ){
+    if( (objects[CANNON].x + (POINT_SIZE/2)) >= WIDTH ){
         return;
     } else {
-        PosShooterX += ShooterJump;
+        objects[CANNON].x += ShooterJump;
     }
 }
 
 void moveShooterLeft(){
-    if( (PosShooterX-(SHOOTER_SIZE/2)) <= 0 ){
+    if( (objects[CANNON].x - (POINT_SIZE/2)) <= 0 ){
         return;
     } else {
-        PosShooterX -= ShooterJump;
+        objects[CANNON].x -= ShooterJump;
     }
 }
 
-void drawShooter(){
-    glColor3f(100.0, 0.0, 0.0);
-    glPointSize(SHOOTER_SIZE);
-    glBegin(GL_POINTS);
-        glVertex2f(0.0, SHOOTER_SIZE/2);
-    glEnd();
-}
-
 void Animation(){
-    if(PosBulletY >= HEIGHT){
-        PosBulletY = EARTH_HEIGHT + SHOOTER_SIZE + (BULLET_SIZE / 2);
+    if(objects[BULLET].y >= HEIGHT){
+        objects[BULLET].y = EARTH_HEIGHT + POINT_SIZE + (POINT_SIZE / 2);
         CanShoot = 1;
         Shooted = 0;
     }
 
     if(Shooted){
-        PosBulletY += BulletJump;
+        objects[BULLET].y += BulletJump;
     }
 
     glutPostRedisplay();
@@ -163,43 +141,34 @@ void Animation(){
 
 void readObjects(){
     int altura, largura;
+
+    //Objects
     Object cannon;
-    cannon.visible = 1;
-    cannon.x = 0;
-    cannon.y = 0;
-    inFile.open("cannon.txt");
-
-    if(!inFile){
-        cout << "Não cconsegui abrir o arquivo" << endl;
-        exit(1);
-    }else{
-        cout << "Arquivo aberto" << endl;
-    }
-    inFile >> altura >> largura;
-    cannon.altura = altura;
-    cannon.largura = largura;
-
-    for(int i = 0; i < altura; i++){ // I e a linha
-        for(int j = 0; j < largura; j++){ // J e a coluna
-            int color;
-            inFile >> color;
-            cannon.form[i][j] = color;
-        }
-    }
-    objects[0] = cannon;
-    inFile.close();
-
     Object enemy01;
-    cannon.visible = 0;
-    cannon.x = 0;
-    cannon.y = 0;
-    inFile.open("enemy01.txt");
+    Object bullet;
 
+    //Cannon properties
+    cannon.visible = 1;
+    cannon.x = WIDTH/2;;
+    cannon.y = EARTH_HEIGHT;
+
+    //Enemy 01 properties
+    enemy01.visible = 0;
+    enemy01.x = WIDTH/2;
+    enemy01.y = HEIGHT/2;
+
+    //Bullet properties
+    bullet.visible = 0;
+    bullet.x = cannon.x;
+    bullet.y = cannon.y;
+
+    /////////////////////// BEGIN CANNON ///////////////////////
+    inFile.open("cannon.txt");
     if(!inFile){
-        cout << "Não cconsegui abrir o arquivo" << endl;
+        cout << "Não consegui abrir o arquivo do atirador" << endl;
         exit(1);
     }else{
-        cout << "Arquivo aberto" << endl;
+        cout << "Arquivo do atirador aberto" << endl;
     }
     inFile >> altura >> largura;
     cannon.altura = altura;
@@ -207,13 +176,54 @@ void readObjects(){
 
     for(int i = 0; i < altura; i++){ // I e a linha
         for(int j = 0; j < largura; j++){ // J e a coluna
-            int color;
-            inFile >> color;
-            cannon.form[i][j] = color;
+            inFile >> cannon.form[i][j];
         }
     }
-    objects[3] = enemy01;
+    objects[CANNON] = cannon;
     inFile.close();
+    /////////////////////// END CANNON ///////////////////////
+
+    /////////////////////// BEGIN ENEMY 01 ///////////////////////
+    inFile.open("enemy01.txt");
+    if(!inFile){
+        cout << "Não consegui abrir o arquivo do inimigo 01" << endl;
+        exit(1);
+    }else{
+        cout << "Arquivo do inimigo 01 aberto" << endl;
+    }
+    inFile >> altura >> largura;
+    enemy01.altura = altura;
+    enemy01.largura = largura;
+
+    for(int i = 0; i < altura; i++){ // I e a linha
+        for(int j = 0; j < largura; j++){ // J e a coluna
+            inFile >> enemy01.form[i][j];
+        }
+    }
+    objects[ENEMY01] = enemy01;
+    inFile.close();
+    /////////////////////// END ENEMY 01 ///////////////////////
+
+    /////////////////////// BEGIN BULLET ///////////////////////
+    inFile.open("bullet.txt");
+    if(!inFile){
+        cout << "Não consegui abrir o arquivo do projetil" << endl;
+        exit(1);
+    }else{
+        cout << "Arquivo do projetil aberto" << endl;
+    }
+    inFile >> altura >> largura;
+    bullet.altura = altura;
+    bullet.largura = largura;
+
+    for(int i = 0; i < altura; i++){ // I e a linha
+        for(int j = 0; j < largura; j++){ // J e a coluna
+            inFile >> bullet.form[i][j];
+        }
+    }
+    objects[BULLET] = bullet;
+    inFile.close();
+    /////////////////////// END ENEMY 01 ///////////////////////
 }
 
 void display( void ){
@@ -231,26 +241,28 @@ void display( void ){
 
     drawEarth();
 
+    // Draw Cannon
     glPushMatrix();
-        glTranslatef(PosShooterX, EARTH_HEIGHT, 0);
-        drawShooter();
+        glTranslatef(objects[CANNON].x, objects[CANNON].y, 0);
+        drawObject(objects[CANNON]);
     glPopMatrix();
 
     if(Shooted && CanShoot){
-        PosBulletX = PosShooterX;
+        objects[BULLET].x = objects[CANNON].x;
+        objects[BULLET].visible = 1;
         CanShoot = 0;
     }
     if (Shooted){
         glPushMatrix();
-            glTranslatef(PosBulletX, PosBulletY, 0);
-            drawBullet();
+            glTranslatef(objects[BULLET].x, objects[BULLET].y, 0);
+            drawObject(objects[BULLET]);
         glPopMatrix();
     }
 
-    // Draw enemy01
+    //Draw enemy01
     glPushMatrix();
-        glTranslatef(WIDTH/2, HEIGHT/2, 0);
-        drawObject(objects[3]);
+        glTranslatef(objects[ENEMY01].x, objects[ENEMY01].y, 0);
+        drawObject(objects[ENEMY01]);
     glPopMatrix();
 
     glutSwapBuffers();
@@ -285,7 +297,6 @@ void keyboard(unsigned char key, int x, int y){
         exit ( 0 );
         break;
     case ' ': // Atira
-        //shoot(PosShooterX);
         Shooted = 1;
         glutPostRedisplay();
     default:
