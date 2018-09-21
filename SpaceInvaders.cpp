@@ -1,7 +1,15 @@
+/*
+0: CANNON
+1: BULLET
+2: LIFE
+*: ENEMIES
+*/
+
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <windows.h>
+#include <stdio.h>
 #include "gl\glut.h"
 
 using std::cout;
@@ -35,6 +43,16 @@ int colors[10][3];
 float enemy01PosX = 0;
 float enemy01PosY = 0;
 
+typedef struct{
+    int x, y;
+    int altura, largura;
+    int form[20][20];
+    int visible;
+    int r;
+}Object;
+
+Object objects[7];
+
 void readColors(){
     inFile.open("colors.txt");
     if(!inFile){
@@ -61,40 +79,24 @@ void readColors(){
     inFile.close();
 }
 
-void drawEnemy01(){
-    inFile.open("enemy01.txt");
-    if(!inFile){
-        cout << "Não cconsegui abrir o arquivo da nave inimiga 01" << endl;
-        exit(1);
-    }//else{
-        //cout << "Arquivo da nave inimiga 01 aberto" << endl;
-    //}
-
-    int altura, largura;
-    inFile >> altura >> largura;
-    //cout << "Dimensoes da nave inimiga 01: " << altura << "x" << largura << endl;
-
+void drawObject(Object o){
+    int altura = o.altura;
+    int largura = o.largura;
     for(int i = 0; i < altura; i++){ // I e a linha
         for(int j = 0; j < largura; j++){ // J e a coluna
             int color;
-            inFile >> color;
-            //cout << "[ " << color << " (" << i << ", " << j << ") ]" << endl;
-
+            color = o.form[i][j];
             glColor3f(colors[color-1][0], colors[color-1][1], colors[color-1][2]);
 
-            //enemy01PosX = ((largura - j) * POINT_SIZE);
-            enemy01PosX = ((j+1 - largura/2) * POINT_SIZE);
-            enemy01PosY = ((altura/2 - i+1) * POINT_SIZE);
+            int x = ((j+1 - largura/2) * POINT_SIZE);
+            int y = ((altura/2 - i+1) * POINT_SIZE);
 
             glPointSize(POINT_SIZE);
             glBegin(GL_POINTS);
-                glVertex2f(enemy01PosX, enemy01PosY);
+                glVertex2f(x, y);
             glEnd();
         }
     }
-
-
-    inFile.close();
 }
 
 void drawBullet(){
@@ -159,6 +161,61 @@ void Animation(){
     glutPostRedisplay();
 }
 
+void readObjects(){
+    int altura, largura;
+    Object cannon;
+    cannon.visible = 1;
+    cannon.x = 0;
+    cannon.y = 0;
+    inFile.open("cannon.txt");
+
+    if(!inFile){
+        cout << "Não cconsegui abrir o arquivo" << endl;
+        exit(1);
+    }else{
+        cout << "Arquivo aberto" << endl;
+    }
+    inFile >> altura >> largura;
+    cannon.altura = altura;
+    cannon.largura = largura;
+
+    for(int i = 0; i < altura; i++){ // I e a linha
+        for(int j = 0; j < largura; j++){ // J e a coluna
+            int color;
+            inFile >> color;
+            cannon.form[i][j] = color;
+        }
+    }
+    objects[0] = cannon;
+    inFile.close();
+
+    Object enemy01;
+    cannon.visible = 0;
+    cannon.x = 0;
+    cannon.y = 0;
+    inFile.open("enemy01.txt");
+
+    if(!inFile){
+        cout << "Não cconsegui abrir o arquivo" << endl;
+        exit(1);
+    }else{
+        cout << "Arquivo aberto" << endl;
+    }
+    inFile >> altura >> largura;
+    cannon.altura = altura;
+    cannon.largura = largura;
+
+    for(int i = 0; i < altura; i++){ // I e a linha
+        for(int j = 0; j < largura; j++){ // J e a coluna
+            int color;
+            inFile >> color;
+            cannon.form[i][j] = color;
+        }
+    }
+    objects[3] = enemy01;
+    inFile.close();
+}
+
 void display( void ){
     // Limpa a tela coma cor de fundo
     glClear(GL_COLOR_BUFFER_BIT);
@@ -168,21 +225,11 @@ void display( void ){
     glLoadIdentity();
     glOrtho(0,WIDTH,0,HEIGHT,0,1);
 
-    glBegin(GL_LINES);
-        glVertex2f(0.0, 0.0);
-        glVertex2f(WIDTH/2, HEIGHT/2);
-    glEnd();
-
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     // Coloque aqui as chamadas das rotinas que desenha os objetos
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     drawEarth();
-
-    glPushMatrix();
-        glTranslatef(WIDTH/2, HEIGHT/2, 0);
-        drawEnemy01();
-    glPopMatrix();
 
     glPushMatrix();
         glTranslatef(PosShooterX, EARTH_HEIGHT, 0);
@@ -199,6 +246,12 @@ void display( void ){
             drawBullet();
         glPopMatrix();
     }
+
+    // Draw enemy01
+    glPushMatrix();
+        glTranslatef(WIDTH/2, HEIGHT/2, 0);
+        drawObject(objects[3]);
+    glPopMatrix();
 
     glutSwapBuffers();
 }
@@ -256,9 +309,8 @@ void reshape(int w, int h){
 void init(void){
     // Define a cor do fundo da tela
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    //drawEnemy01();
-
     readColors();
+    readObjects();
 }
 
 int main(int argc, char** argv)
