@@ -82,8 +82,9 @@ void drawEnemy01(){
 
             glColor3f(colors[color-1][0], colors[color-1][1], colors[color-1][2]);
 
-            enemy01PosX = ((largura - j) * POINT_SIZE);
-            enemy01PosY = ((altura - i) * POINT_SIZE);
+            //enemy01PosX = ((largura - j) * POINT_SIZE);
+            enemy01PosX = ((j+1 - largura/2) * POINT_SIZE);
+            enemy01PosY = ((altura/2 - i+1) * POINT_SIZE);
 
             glPointSize(POINT_SIZE);
             glBegin(GL_POINTS);
@@ -166,6 +167,11 @@ void display( void ){
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glOrtho(0,WIDTH,0,HEIGHT,0,1);
+
+    glBegin(GL_LINES);
+        glVertex2f(0.0, 0.0);
+        glVertex2f(WIDTH/2, HEIGHT/2);
+    glEnd();
 
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     // Coloque aqui as chamadas das rotinas que desenha os objetos
