@@ -2,7 +2,13 @@
 0: CANNON
 1: BULLET
 2: LIFE
-*: ENEMIES
+3.. : ENEMIES
+*/
+
+/* PROCESSO PARA INSERIR UM INIMIGO NO JOGO
+1) Colocar a leitura do inimigo no readObjects
+2) Desenhar o objeto no Display
+3) Inserir animacao em Animation
 */
 
 #include <iostream>
@@ -11,6 +17,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include "gl\glut.h"
+#include <cmath>
 
 using std::cout;
 using std::endl;
@@ -21,6 +28,7 @@ using namespace std;
 ifstream inFile;
 int x;
 
+// Referencia para ajudar a usar o array objects
 int CANNON = 0;
 int BULLET = 1;
 int LIFE = 2;
@@ -28,6 +36,9 @@ int ENEMY01 = 3;
 int ENEMY02 = 4;
 int ENEMY03 = 5;
 int ENEMY04 = 6;
+int NUMBER_OF_ENEMITES = 2; // Numero de inimigos existentes no jogo
+
+int life = 3; // numero de vidas iniciais
 
 int WIDTH = 1200;
 int HEIGHT = 800;
@@ -35,19 +46,18 @@ float EARTH_HEIGHT = 100.0;
 int POINT_SIZE = 7.0;
 
 int ShooterJump = 10;
-int BulletJump = 2;
-int Shooted = 0;
+int BulletJump = 3;
 int CanShoot = 1;
 
 int NUM_COLORS;
 int colors[10][3];
 
 typedef struct{
-    int x, y;
+    float x, y;
     int altura, largura;
     int form[20][20];
     int visible;
-    int r;
+    float radius;
 }Object;
 
 Object objects[7];
@@ -125,16 +135,90 @@ void moveShooterLeft(){
     }
 }
 
+float distance(float x1, float y1, float x2, float y2){
+    return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+}
+
+void calculateIntersection(){
+    //#####################################################
+    //CALCULAR A INTERSECAO DO ATIRADOR COM A VITAMINA AQUI
+
+    for(int i = 3; i < (3+NUMBER_OF_ENEMITES); i++){
+        Object enemy = objects[i];
+        //So calcula interseccao se o inimigo e o projetil estiverem na tela
+        if(enemy.visible && objects[BULLET].visible){
+            //r1 = raio do projetil
+            float bullet_radius = objects[BULLET].radius;
+            float r1 = distance(objects[BULLET].x, objects[BULLET].y, objects[BULLET].x + bullet_radius, objects[BULLET].y + bullet_radius);
+
+            //r2 = radio do inimigo
+            float enemy_radius = enemy.radius;
+            float r2 = distance(enemy.x, enemy.y, enemy.x + enemy_radius, enemy.y + enemy_radius);
+
+            // distancia do centro do projetil até o centro do inimigo;
+            float d1 = distance(objects[BULLET].x, objects[BULLET].y, enemy.x, enemy.y);
+
+            // Soma dos raios
+            float d2 = r1 + r2;
+
+            if(d1 <= d2){
+                objects[BULLET].visible = 0;
+                objects[BULLET].x = objects[CANNON].x;
+                objects[BULLET].y = objects[CANNON].y;
+                objects[i].visible = 0;
+                cout << "Matou o inimigo!" << endl;
+                int ALL_DEAD = 1;
+                for(int h = 3; h < (3+NUMBER_OF_ENEMITES); h++){
+                    if(objects[h].visible) ALL_DEAD = 0;
+                }
+                if(ALL_DEAD){
+                    cout << "Todos os inimigos mortos!" << endl;
+                    exit(0);
+                }
+            }
+        }
+    }
+}
+
 void Animation(){
+    if(life == 0){
+        cout << "Jogador morreu!" << endl;
+        exit(0);
+    }
+
+    calculateIntersection();
+
     if(objects[BULLET].y >= HEIGHT){
         objects[BULLET].y = EARTH_HEIGHT + POINT_SIZE + (POINT_SIZE / 2);
         CanShoot = 1;
-        Shooted = 0;
+        objects[BULLET].visible = 0;
     }
 
-    if(Shooted){
+    if(objects[BULLET].visible){
         objects[BULLET].y += BulletJump;
     }
+
+    //////// BEGIN ENEMY 01 ////////
+    if(objects[ENEMY01].visible){
+        if(objects[ENEMY01].y <= EARTH_HEIGHT){
+            objects[ENEMY01].y = HEIGHT;
+            life -= 1;
+            cout << "Vida: " << life << endl;
+        }
+        objects[ENEMY01].y -= 0.3;
+    }
+    //////// END ENEMY 01 /////////
+
+    //////// BEGIN ENEMY 02 ////////
+    if(objects[ENEMY02].visible){
+        if(objects[ENEMY02].y <= EARTH_HEIGHT){
+            objects[ENEMY02].y = HEIGHT;
+            life -= 1;
+            cout << "Vida: " << life << endl;
+        }
+        objects[ENEMY02].y -= 0.1;
+    }
+    //////// END ENEMY 02 /////////
 
     glutPostRedisplay();
 }
@@ -144,8 +228,9 @@ void readObjects(){
 
     //Objects
     Object cannon;
-    Object enemy01;
     Object bullet;
+    Object enemy01;
+    Object enemy02;
 
     //Cannon properties
     cannon.visible = 1;
@@ -153,9 +238,15 @@ void readObjects(){
     cannon.y = EARTH_HEIGHT;
 
     //Enemy 01 properties
-    enemy01.visible = 0;
+    enemy01.visible = 1;
     enemy01.x = WIDTH/2;
-    enemy01.y = HEIGHT/2;
+    enemy01.y = HEIGHT;
+
+    //Enemy 02 properties
+    enemy02.visible = 1;
+    enemy02.x = WIDTH/2 + (100);
+    enemy02.y = HEIGHT;
+
 
     //Bullet properties
     bullet.visible = 0;
@@ -173,6 +264,7 @@ void readObjects(){
     inFile >> altura >> largura;
     cannon.altura = altura;
     cannon.largura = largura;
+    cannon.radius = cannon.largura/2;
 
     for(int i = 0; i < altura; i++){ // I e a linha
         for(int j = 0; j < largura; j++){ // J e a coluna
@@ -182,27 +274,6 @@ void readObjects(){
     objects[CANNON] = cannon;
     inFile.close();
     /////////////////////// END CANNON ///////////////////////
-
-    /////////////////////// BEGIN ENEMY 01 ///////////////////////
-    inFile.open("enemy01.txt");
-    if(!inFile){
-        cout << "Não consegui abrir o arquivo do inimigo 01" << endl;
-        exit(1);
-    }else{
-        cout << "Arquivo do inimigo 01 aberto" << endl;
-    }
-    inFile >> altura >> largura;
-    enemy01.altura = altura;
-    enemy01.largura = largura;
-
-    for(int i = 0; i < altura; i++){ // I e a linha
-        for(int j = 0; j < largura; j++){ // J e a coluna
-            inFile >> enemy01.form[i][j];
-        }
-    }
-    objects[ENEMY01] = enemy01;
-    inFile.close();
-    /////////////////////// END ENEMY 01 ///////////////////////
 
     /////////////////////// BEGIN BULLET ///////////////////////
     inFile.open("bullet.txt");
@@ -215,6 +286,7 @@ void readObjects(){
     inFile >> altura >> largura;
     bullet.altura = altura;
     bullet.largura = largura;
+    bullet.radius = bullet.largura*2;
 
     for(int i = 0; i < altura; i++){ // I e a linha
         for(int j = 0; j < largura; j++){ // J e a coluna
@@ -223,7 +295,51 @@ void readObjects(){
     }
     objects[BULLET] = bullet;
     inFile.close();
+    /////////////////////// END BULLET ///////////////////////
+
+    /////////////////////// BEGIN ENEMY 01 ///////////////////////
+    inFile.open("enemy01.txt");
+    if(!inFile){
+        cout << "Não consegui abrir o arquivo do inimigo 01" << endl;
+        exit(1);
+    }else{
+        cout << "Arquivo do inimigo 01 aberto" << endl;
+    }
+    inFile >> altura >> largura;
+    enemy01.altura = altura;
+    enemy01.largura = largura;
+    enemy01.radius = enemy01.largura*2;
+
+    for(int i = 0; i < altura; i++){ // I e a linha
+        for(int j = 0; j < largura; j++){ // J e a coluna
+            inFile >> enemy01.form[i][j];
+        }
+    }
+    objects[ENEMY01] = enemy01;
+    inFile.close();
     /////////////////////// END ENEMY 01 ///////////////////////
+
+    /////////////////////// BEGIN ENEMY 02 ///////////////////////
+    inFile.open("enemy02.txt");
+    if(!inFile){
+        cout << "Não consegui abrir o arquivo do inimigo 02" << endl;
+        exit(1);
+    }else{
+        cout << "Arquivo do inimigo 02 aberto" << endl;
+    }
+    inFile >> altura >> largura;
+    enemy02.altura = altura;
+    enemy02.largura = largura;
+    enemy02.radius = enemy02.largura*2;
+
+    for(int i = 0; i < altura; i++){ // I e a linha
+        for(int j = 0; j < largura; j++){ // J e a coluna
+            inFile >> enemy02.form[i][j];
+        }
+    }
+    objects[ENEMY02] = enemy02;
+    inFile.close();
+    /////////////////////// END ENEMY 02 ///////////////////////
 }
 
 void display( void ){
@@ -247,23 +363,34 @@ void display( void ){
         drawObject(objects[CANNON]);
     glPopMatrix();
 
-    if(Shooted && CanShoot){
+    if(objects[BULLET].visible && CanShoot){
         objects[BULLET].x = objects[CANNON].x;
         objects[BULLET].visible = 1;
         CanShoot = 0;
     }
-    if (Shooted){
+    if (objects[BULLET].visible){
         glPushMatrix();
+            objects[BULLET].x = objects[CANNON].x;
             glTranslatef(objects[BULLET].x, objects[BULLET].y, 0);
             drawObject(objects[BULLET]);
         glPopMatrix();
     }
 
     //Draw enemy01
-    glPushMatrix();
-        glTranslatef(objects[ENEMY01].x, objects[ENEMY01].y, 0);
-        drawObject(objects[ENEMY01]);
-    glPopMatrix();
+    if(objects[ENEMY01].visible){
+        glPushMatrix();
+            glTranslatef(objects[ENEMY01].x, objects[ENEMY01].y, 0);
+            drawObject(objects[ENEMY01]);
+        glPopMatrix();
+    }
+
+    //Draw enemy02
+    if(objects[ENEMY02].visible){
+        glPushMatrix();
+            glTranslatef(objects[ENEMY02].x, objects[ENEMY02].y, 0);
+            drawObject(objects[ENEMY02]);
+        glPopMatrix();
+    }
 
     glutSwapBuffers();
 }
@@ -297,7 +424,7 @@ void keyboard(unsigned char key, int x, int y){
         exit ( 0 );
         break;
     case ' ': // Atira
-        Shooted = 1;
+        objects[BULLET].visible = 1;
         glutPostRedisplay();
     default:
         break;
