@@ -197,7 +197,7 @@ void calculateIntersection(){
                 objects[BULLET].visible = 0;
                 objects[BULLET].x = objects[CANNON].x;
                 objects[BULLET].y = objects[CANNON].y;
-                objects[i].visible = 0;
+                objects[i].visible -= 1;
                 cout << "Matou o inimigo!" << endl;
                 int ALL_DEAD = 1;
                 for(int h = 3; h < (3+NUMBER_OF_ENEMITES); h++){
@@ -222,8 +222,6 @@ void Animation(){
 
     // Se o projetil atingiu o final da tela, retorna pro y inicial e tira da tela
     if(objects[BULLET].y >= HEIGHT){
-        objects[BULLET].y = objects[CANNON].y;
-        CanShoot = 1;
         objects[BULLET].visible = 0;
     }
 
@@ -451,14 +449,8 @@ void display( void ){
         drawObject(objects[CANNON]);
     glPopMatrix();
 
-    if(objects[BULLET].visible && CanShoot){
-        objects[BULLET].x = objects[CANNON].x;
-        objects[BULLET].visible = 1;
-        CanShoot = 0;
-    }
     if (objects[BULLET].visible){
         glPushMatrix();
-            objects[BULLET].x = objects[CANNON].x;
             glTranslatef(objects[BULLET].x, objects[BULLET].y, 0);
             drawObject(objects[BULLET]);
         glPopMatrix();
@@ -506,8 +498,12 @@ void keyboard(unsigned char key, int x, int y){
         exit ( 0 );
         break;
     case ' ': // Atira
-        objects[BULLET].visible = 1;
-        glutPostRedisplay();
+        if(!objects[BULLET].visible){
+            objects[BULLET].x = objects[CANNON].x;
+            objects[BULLET].y = objects[CANNON].y;
+            objects[BULLET].visible = 1;
+            glutPostRedisplay();
+        }
     default:
         break;
     }
