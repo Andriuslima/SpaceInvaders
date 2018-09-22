@@ -213,7 +213,7 @@ void calculateIntersection(){
 }
 
 void Animation(){
-    if(life == 0){
+    if(life <= 0){
         cout << "Jogador morreu!" << endl;
         exit(0);
     }
