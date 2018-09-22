@@ -35,7 +35,7 @@ int ENEMY01 = 3;
 int ENEMY02 = 4;
 int ENEMY03 = 5;
 int ENEMY04 = 6;
-int NUMBER_OF_ENEMITES = 2; // Numero de inimigos existentes no jogo
+int NUMBER_OF_ENEMITES = 4; // Numero de inimigos existentes no jogo
 
 int life = 3; // numero de vidas iniciais
 
@@ -114,6 +114,40 @@ void drawEarth(){
         glEnd();
 
     glPopMatrix();
+
+}
+
+void drawLife(){
+    if (life == 3)
+    {
+        glPushMatrix();
+            glColor3f(0.0,255,0.0);
+            glBegin(GL_POINTS);
+                glVertex2i(50, HEIGHT - 50);
+                glVertex2i(100, HEIGHT - 50);
+                glVertex2i(150, HEIGHT - 50);
+            glEnd();
+        glPopMatrix();
+    }
+    else if(life == 2)
+    {
+        glPushMatrix();
+            glColor3f(0.0,255,0.0);
+            glBegin(GL_POINTS);
+                glVertex2i(50, HEIGHT - 50);
+                glVertex2i(100, HEIGHT - 50);
+            glEnd();
+        glPopMatrix();
+    }
+    else if (life == 1)
+    {
+        glPushMatrix();
+            glColor3f(0.0,255,0.0);
+            glBegin(GL_POINTS);
+                glVertex2i(50, HEIGHT - 50);
+            glEnd();
+        glPopMatrix();
+    }
 
 }
 
@@ -221,6 +255,8 @@ void readObjects(){
     Object bullet;
     Object enemy01;
     Object enemy02;
+    Object enemy03;
+    Object enemy04;
 
     //Cannon properties
     cannon.visible = 1;
@@ -239,6 +275,18 @@ void readObjects(){
     enemy02.x = WIDTH/2 + (100);
     enemy02.y = HEIGHT;
     enemy02.move = 0.1;
+
+    //Enemy 03 properties
+    enemy03.visible = 1;
+    enemy03.x = WIDTH/2 - (100);
+    enemy03.y = HEIGHT;
+    enemy03.move = 0.2;
+
+    //Enemy 04 properties
+    enemy04.visible = 1;
+    enemy04.x = WIDTH/2 - (200);
+    enemy04.y = HEIGHT;
+    enemy04.move = 0.4;
 
 
     //Bullet properties
@@ -334,6 +382,51 @@ void readObjects(){
     objects[ENEMY02] = enemy02;
     inFile.close();
     /////////////////////// END ENEMY 02 ///////////////////////
+
+     /////////////////////// BEGIN ENEMY 03 ///////////////////////
+    inFile.open("enemy03.txt");
+    if(!inFile){
+        cout << "Não consegui abrir o arquivo do inimigo 03" << endl;
+        exit(1);
+    }else{
+        cout << "Arquivo do inimigo 03 aberto" << endl;
+    }
+    inFile >> altura >> largura;
+    enemy03.altura = altura;
+    enemy03.largura = largura;
+    enemy03.radius = enemy03.largura*2;
+
+    for(int i = 0; i < altura; i++){ // I e a linha
+        for(int j = 0; j < largura; j++){ // J e a coluna
+            inFile >> enemy03.form[i][j];
+        }
+    }
+    objects[ENEMY03] = enemy03;
+    inFile.close();
+    /////////////////////// END ENEMY 03 ///////////////////////
+
+
+    /////////////////////// BEGIN ENEMY 04 ///////////////////////
+    inFile.open("enemy04.txt");
+    if(!inFile){
+        cout << "Não consegui abrir o arquivo do inimigo 04" << endl;
+        exit(1);
+    }else{
+        cout << "Arquivo do inimigo 04 aberto" << endl;
+    }
+    inFile >> altura >> largura;
+    enemy04.altura = altura;
+    enemy04.largura = largura;
+    enemy04.radius = enemy04.largura*2;
+
+    for(int i = 0; i < altura; i++){ // I e a linha
+        for(int j = 0; j < largura; j++){ // J e a coluna
+            inFile >> enemy04.form[i][j];
+        }
+    }
+    objects[ENEMY04] = enemy04;
+    inFile.close();
+    /////////////////////// END ENEMY 04 ///////////////////////
 }
 
 void display( void ){
@@ -350,6 +443,7 @@ void display( void ){
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     drawEarth();
+    drawLife();
 
     // Draw Cannon
     glPushMatrix();
