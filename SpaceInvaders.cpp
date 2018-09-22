@@ -466,7 +466,7 @@ void readObjects(){
     /////////////////////// END ENEMY 04 ///////////////////////
 
      /////////////////////// BEGIN VITAMIN ///////////////////////
-    inFile.open("vitamin.txt");
+    inFile.open("vitamina.txt");
     if(!inFile){
         cout << "Não consegui abrir o arquivo do vitamin" << endl;
         exit(1);
