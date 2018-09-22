@@ -7,8 +7,7 @@
 
 /* PROCESSO PARA INSERIR UM INIMIGO NO JOGO
 1) Colocar a leitura do inimigo no readObjects
-2) Desenhar o objeto no Display
-3) Inserir animacao em Animation
+2) Incrementar variavel NUMBER_OF_ENEMITES
 */
 
 #include <iostream>
@@ -45,8 +44,6 @@ int HEIGHT = 800;
 float EARTH_HEIGHT = 100.0;
 int POINT_SIZE = 7.0;
 
-int ShooterJump = 10;
-int BulletJump = 3;
 int CanShoot = 1;
 
 int NUM_COLORS;
@@ -58,6 +55,7 @@ typedef struct{
     int form[20][20];
     int visible;
     float radius;
+    float move;
 }Object;
 
 Object objects[7];
@@ -123,7 +121,7 @@ void moveShooterRight(){
     if( (objects[CANNON].x + (POINT_SIZE/2)) >= WIDTH ){
         return;
     } else {
-        objects[CANNON].x += ShooterJump;
+        objects[CANNON].x += objects[CANNON].move;
     }
 }
 
@@ -131,7 +129,7 @@ void moveShooterLeft(){
     if( (objects[CANNON].x - (POINT_SIZE/2)) <= 0 ){
         return;
     } else {
-        objects[CANNON].x -= ShooterJump;
+        objects[CANNON].x -= objects[CANNON].move;
     }
 }
 
@@ -188,37 +186,29 @@ void Animation(){
 
     calculateIntersection();
 
+    // Se o projetil atingiu o final da tela, retorna pro y inicial e tira da tela
     if(objects[BULLET].y >= HEIGHT){
-        objects[BULLET].y = EARTH_HEIGHT + POINT_SIZE + (POINT_SIZE / 2);
+        objects[BULLET].y = objects[CANNON].y;
         CanShoot = 1;
         objects[BULLET].visible = 0;
     }
 
+    //Se o projetil tá visivel incrementa a sua posicao em y
     if(objects[BULLET].visible){
-        objects[BULLET].y += BulletJump;
+        objects[BULLET].y += objects[BULLET].move;
     }
 
-    //////// BEGIN ENEMY 01 ////////
-    if(objects[ENEMY01].visible){
-        if(objects[ENEMY01].y <= EARTH_HEIGHT){
-            objects[ENEMY01].y = HEIGHT;
-            life -= 1;
-            cout << "Vida: " << life << endl;
+    // Passa por cada inimigo e anima
+    for(int i = 3; i < 3+NUMBER_OF_ENEMITES; i++){
+        if(objects[i].visible){
+            if(objects[i].y <= EARTH_HEIGHT){
+                objects[i].y = HEIGHT;
+                life -= 1;
+                cout << "Vida: " << life << endl;
+            }
+            objects[i].y -= objects[i].move;
         }
-        objects[ENEMY01].y -= 0.3;
     }
-    //////// END ENEMY 01 /////////
-
-    //////// BEGIN ENEMY 02 ////////
-    if(objects[ENEMY02].visible){
-        if(objects[ENEMY02].y <= EARTH_HEIGHT){
-            objects[ENEMY02].y = HEIGHT;
-            life -= 1;
-            cout << "Vida: " << life << endl;
-        }
-        objects[ENEMY02].y -= 0.1;
-    }
-    //////// END ENEMY 02 /////////
 
     glutPostRedisplay();
 }
@@ -236,22 +226,26 @@ void readObjects(){
     cannon.visible = 1;
     cannon.x = WIDTH/2;;
     cannon.y = EARTH_HEIGHT;
+    cannon.move = 10;
 
     //Enemy 01 properties
     enemy01.visible = 1;
     enemy01.x = WIDTH/2;
     enemy01.y = HEIGHT;
+    enemy01.move = 0.3;
 
     //Enemy 02 properties
     enemy02.visible = 1;
     enemy02.x = WIDTH/2 + (100);
     enemy02.y = HEIGHT;
+    enemy02.move = 0.1;
 
 
     //Bullet properties
     bullet.visible = 0;
     bullet.x = cannon.x;
     bullet.y = cannon.y;
+    bullet.move = 3;
 
     /////////////////////// BEGIN CANNON ///////////////////////
     inFile.open("cannon.txt");
@@ -376,20 +370,14 @@ void display( void ){
         glPopMatrix();
     }
 
-    //Draw enemy01
-    if(objects[ENEMY01].visible){
-        glPushMatrix();
-            glTranslatef(objects[ENEMY01].x, objects[ENEMY01].y, 0);
-            drawObject(objects[ENEMY01]);
-        glPopMatrix();
-    }
-
-    //Draw enemy02
-    if(objects[ENEMY02].visible){
-        glPushMatrix();
-            glTranslatef(objects[ENEMY02].x, objects[ENEMY02].y, 0);
-            drawObject(objects[ENEMY02]);
-        glPopMatrix();
+    // Coloca os inimigos na tela baseado nas suas propriedades
+    for(int i = 3; i < 3+NUMBER_OF_ENEMITES; i++){
+        if(objects[i].visible){
+            glPushMatrix();
+                glTranslatef(objects[i].x, objects[i].y, 0);
+                drawObject(objects[i]);
+            glPopMatrix();
+        }
     }
 
     glutSwapBuffers();
