@@ -35,7 +35,9 @@ int ENEMY01 = 3;
 int ENEMY02 = 4;
 int ENEMY03 = 5;
 int ENEMY04 = 6;
-int NUMBER_OF_ENEMITES = 4; // Numero de inimigos existentes no jogo
+int VITAMIN = 7;
+
+int NUMBER_OF_ENEMITES = 5; // Numero de inimigos existentes no jogo
 
 int life = 3; // numero de vidas iniciais
 
@@ -58,7 +60,7 @@ typedef struct{
     float move;
 }Object;
 
-Object objects[7];
+Object objects[8];
 
 void readColors(){
     inFile.open("colors.txt");
@@ -174,7 +176,35 @@ float distance(float x1, float y1, float x2, float y2){
 void calculateIntersection(){
     //#####################################################
     //CALCULAR A INTERSECAO DO ATIRADOR COM A VITAMINA AQUI
+    Object vitamin = objects[VITAMIN];
+    Object player = objects[CANNON];
+    if(vitamin.visible){
+            //r1 = raio do canhão
+            float player_radius = objects[CANNON].radius;
+            float r1 = distance(objects[CANNON].x, objects[CANNON].y, objects[CANNON].x + player_radius, objects[CANNON].y + player_radius);
 
+            //r2 = radio da vitamina
+            float vitamin_radius = vitamin.radius;
+            float r2 = distance(vitamin.x, vitamin.y, vitamin.x + vitamin_radius, vitamin.y + vitamin_radius);
+
+            // distancia do centro do projetil até o centro do inimigo;
+            float d1 = distance(objects[CANNON].x, objects[CANNON].y, vitamin.x, vitamin.y);
+
+            // Soma dos raios
+            float d2 = r1 + r2;
+
+            if(d1 <= d2){
+                objects[VITAMIN].visible = 0;
+                objects[VITAMIN].x = objects[CANNON].x;
+                objects[VITAMIN].y = objects[CANNON].y;
+                objects[VITAMIN].visible = 0;
+                cout << "Recuperou vida" << endl;
+                life += 1;
+
+            }
+    }
+
+    //PROJÉTIL E INIMIGO
     for(int i = 3; i < (3+NUMBER_OF_ENEMITES); i++){
         Object enemy = objects[i];
         //So calcula interseccao se o inimigo e o projetil estiverem na tela
@@ -257,6 +287,7 @@ void readObjects(){
     Object enemy02;
     Object enemy03;
     Object enemy04;
+    Object vitamin;
 
     //Cannon properties
     cannon.visible = 1;
@@ -294,6 +325,12 @@ void readObjects(){
     bullet.x = cannon.x;
     bullet.y = cannon.y;
     bullet.move = 3;
+
+    //Vitamin properties
+    vitamin.visible = 1;
+    vitamin.x = WIDTH/2 + (200);
+    vitamin.y = HEIGHT;
+    vitamin.move = 0.2;
 
     /////////////////////// BEGIN CANNON ///////////////////////
     inFile.open("cannon.txt");
@@ -406,6 +443,8 @@ void readObjects(){
     /////////////////////// END ENEMY 03 ///////////////////////
 
 
+
+
     /////////////////////// BEGIN ENEMY 04 ///////////////////////
     inFile.open("enemy04.txt");
     if(!inFile){
@@ -427,6 +466,33 @@ void readObjects(){
     objects[ENEMY04] = enemy04;
     inFile.close();
     /////////////////////// END ENEMY 04 ///////////////////////
+
+     /////////////////////// BEGIN VITAMIN ///////////////////////
+    inFile.open("vitamin.txt");
+    if(!inFile){
+        cout << "Não consegui abrir o arquivo do vitamin" << endl;
+        exit(1);
+    }else{
+        cout << "Arquivo do vitamin aberto" << endl;
+    }
+    inFile >> altura >> largura;
+    vitamin.altura = altura;
+    vitamin.largura = largura;
+    vitamin.radius = vitamin.largura*2;
+
+    for(int i = 0; i < altura; i++){ // I e a linha
+        for(int j = 0; j < largura; j++){ // J e a coluna
+            inFile >> vitamin.form[i][j];
+        }
+    }
+    objects[VITAMIN] = vitamin;
+    inFile.close();
+    /////////////////////// END VITAMIN ///////////////////////
+
+
+
+
+
 }
 
 void display( void ){
