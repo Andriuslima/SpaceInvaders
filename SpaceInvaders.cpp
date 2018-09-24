@@ -1,3 +1,7 @@
+// ANDRIUS LIMA
+// MARCELO GUNTHER OLIVEIRA DRUMM
+// 24/09/2018
+
 /*
 0: CANNON
 1: BULLET
@@ -11,6 +15,7 @@
 */
 
 #include <iostream>
+#include <stdlib.h>
 #include <fstream>
 #include <string>
 #include <windows.h>
@@ -30,16 +35,18 @@ int x;
 // Referencia para ajudar a usar o array objects
 int CANNON = 0;
 int BULLET = 1;
-int LIFE = 2;
+int VITAMIN = 2;
 int ENEMY01 = 3;
 int ENEMY02 = 4;
 int ENEMY03 = 5;
 int ENEMY04 = 6;
-int VITAMIN = 7;
+int WON = 7;
+int GAME_OVER = 8;
 
-int NUMBER_OF_ENEMITES = 5; // Numero de inimigos existentes no jogo
+int NUMBER_OF_ENEMITES = 4; // Numero de inimigos existentes no jogo
 
 int life = 3; // numero de vidas iniciais
+int MAX_LIFE = 3;
 
 int WIDTH = 1200;
 int HEIGHT = 800;
@@ -51,6 +58,8 @@ int CanShoot = 1;
 int NUM_COLORS;
 int colors[10][3];
 
+int PLAYER_WON = -1;
+
 typedef struct{
     float x, y;
     int altura, largura;
@@ -60,7 +69,9 @@ typedef struct{
     float move;
 }Object;
 
-Object objects[8];
+Object objects[10];
+
+
 
 void readColors(){
     inFile.open("colors.txt");
@@ -174,8 +185,6 @@ float distance(float x1, float y1, float x2, float y2){
 }
 
 void calculateIntersection(){
-    //#####################################################
-    //CALCULAR A INTERSECAO DO ATIRADOR COM A VITAMINA AQUI
     Object vitamin = objects[VITAMIN];
     Object player = objects[CANNON];
     if(vitamin.visible){
@@ -194,12 +203,13 @@ void calculateIntersection(){
             float d2 = r1 + r2;
 
             if(d1 <= d2){
-                objects[VITAMIN].visible = 0;
-                objects[VITAMIN].x = objects[CANNON].x;
-                objects[VITAMIN].y = objects[CANNON].y;
-                objects[VITAMIN].visible = 0;
+                objects[VITAMIN].visible -= 1;
+                objects[VITAMIN].x = rand() % WIDTH;
+                objects[VITAMIN].y = HEIGHT + 50;
                 cout << "Recuperou vida" << endl;
-                life += 1;
+                if(life < MAX_LIFE){
+                    life += 1;
+                }
 
             }
     }
@@ -228,14 +238,17 @@ void calculateIntersection(){
                 objects[BULLET].x = objects[CANNON].x;
                 objects[BULLET].y = objects[CANNON].y;
                 objects[i].visible -= 1;
-                cout << "Matou o inimigo!" << endl;
+                objects[i].y = HEIGHT + 50;
+                objects[i].x = rand() % WIDTH;
+                cout << "Matou o inimigo" << endl;
                 int ALL_DEAD = 1;
                 for(int h = 3; h < (3+NUMBER_OF_ENEMITES); h++){
                     if(objects[h].visible) ALL_DEAD = 0;
                 }
                 if(ALL_DEAD){
                     cout << "Todos os inimigos mortos!" << endl;
-                    exit(0);
+                    PLAYER_WON = 1;
+                    //exit(0);
                 }
             }
         }
@@ -245,7 +258,8 @@ void calculateIntersection(){
 void Animation(){
     if(life <= 0){
         cout << "Jogador morreu!" << endl;
-        exit(0);
+        PLAYER_WON = 0;
+        //exit(0);
     }
 
     calculateIntersection();
@@ -272,6 +286,14 @@ void Animation(){
         }
     }
 
+    if(objects[VITAMIN].y <= EARTH_HEIGHT){
+        objects[VITAMIN].visible -= 1;
+        objects[VITAMIN].y = HEIGHT;
+        cout << "Vitamina perdida, restam: " << objects[VITAMIN].visible << endl;
+    }else if(objects[VITAMIN].visible){
+        objects[VITAMIN].y -= objects[VITAMIN].move;
+    }
+
     glutPostRedisplay();
 }
 
@@ -286,6 +308,8 @@ void readObjects(){
     Object enemy03;
     Object enemy04;
     Object vitamin;
+    Object won;
+    Object game_over;
 
     //Cannon properties
     cannon.visible = 1;
@@ -294,26 +318,26 @@ void readObjects(){
     cannon.move = 10;
 
     //Enemy 01 properties
-    enemy01.visible = 1;
-    enemy01.x = WIDTH/2;
+    enemy01.visible = 4;
+    enemy01.x = rand() % WIDTH;
     enemy01.y = HEIGHT;
     enemy01.move = 0.3;
 
     //Enemy 02 properties
-    enemy02.visible = 1;
-    enemy02.x = WIDTH/2 + (100);
+    enemy02.visible = 2;
+    enemy02.x = rand() % WIDTH;
     enemy02.y = HEIGHT;
     enemy02.move = 0.1;
 
     //Enemy 03 properties
-    enemy03.visible = 1;
-    enemy03.x = WIDTH/2 - (100);
+    enemy03.visible = 3;
+    enemy03.x = rand() % WIDTH;
     enemy03.y = HEIGHT;
     enemy03.move = 0.2;
 
     //Enemy 04 properties
-    enemy04.visible = 1;
-    enemy04.x = WIDTH/2 - (200);
+    enemy04.visible = 10;
+    enemy04.x = rand() % WIDTH;
     enemy04.y = HEIGHT;
     enemy04.move = 0.4;
 
@@ -325,10 +349,22 @@ void readObjects(){
     bullet.move = 3;
 
     //Vitamin properties
-    vitamin.visible = 1;
-    vitamin.x = WIDTH/2 + (200);
+    vitamin.visible = 3;
+    vitamin.x = rand() % WIDTH;
     vitamin.y = HEIGHT;
     vitamin.move = 0.2;
+
+    //Won properties
+    won.visible = 1;
+    won.x = WIDTH/2;
+    won.y = HEIGHT/2;
+    won.move = 0.2;
+
+    //Won properties
+    game_over.visible = 1;
+    game_over.x = WIDTH/2;
+    game_over.y = HEIGHT/2;
+    game_over.move = 0.2;
 
     /////////////////////// BEGIN CANNON ///////////////////////
     inFile.open("cannon.txt");
@@ -487,6 +523,50 @@ void readObjects(){
     inFile.close();
     /////////////////////// END VITAMIN ///////////////////////
 
+    /////////////////////// BEGIN WON ///////////////////////
+    inFile.open("won.txt");
+    if(!inFile){
+        cout << "Não consegui abrir o arquivo won" << endl;
+        exit(1);
+    }else{
+        cout << "Arquivo won aberto" << endl;
+    }
+    inFile >> altura >> largura;
+    won.altura = altura;
+    won.largura = largura;
+    won.radius = won.largura*2;
+
+    for(int i = 0; i < altura; i++){ // I e a linha
+        for(int j = 0; j < largura; j++){ // J e a coluna
+            inFile >> won.form[i][j];
+        }
+    }
+    objects[WON] = won;
+    inFile.close();
+    /////////////////////// END WON ///////////////////////
+
+    /////////////////////// BEGIN WON ///////////////////////
+    inFile.open("game_over.txt");
+    if(!inFile){
+        cout << "Não consegui abrir o arquivo game over" << endl;
+        exit(1);
+    }else{
+        cout << "Arquivo game over aberto" << endl;
+    }
+    inFile >> altura >> largura;
+    game_over.altura = altura;
+    game_over.largura = largura;
+    game_over.radius = game_over.largura*2;
+
+    for(int i = 0; i < altura; i++){ // I e a linha
+        for(int j = 0; j < largura; j++){ // J e a coluna
+            inFile >> game_over.form[i][j];
+        }
+    }
+    objects[GAME_OVER] = game_over;
+    inFile.close();
+    /////////////////////// END WON ///////////////////////
+
 
 
 
@@ -506,30 +586,53 @@ void display( void ){
     // Coloque aqui as chamadas das rotinas que desenha os objetos
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    drawEarth();
-    drawLife();
+    if(PLAYER_WON == -1){
+        drawEarth();
+        drawLife();
 
-    // Draw Cannon
-    glPushMatrix();
-        glTranslatef(objects[CANNON].x, objects[CANNON].y, 0);
-        drawObject(objects[CANNON]);
-    glPopMatrix();
-
-    if (objects[BULLET].visible){
+        // Draw Cannon
         glPushMatrix();
-            glTranslatef(objects[BULLET].x, objects[BULLET].y, 0);
-            drawObject(objects[BULLET]);
+            glTranslatef(objects[CANNON].x, objects[CANNON].y, 0);
+            drawObject(objects[CANNON]);
         glPopMatrix();
-    }
 
-    // Coloca os inimigos na tela baseado nas suas propriedades
-    for(int i = 3; i < 3+NUMBER_OF_ENEMITES; i++){
-        if(objects[i].visible){
+        if (objects[BULLET].visible){
             glPushMatrix();
-                glTranslatef(objects[i].x, objects[i].y, 0);
-                drawObject(objects[i]);
+                glTranslatef(objects[BULLET].x, objects[BULLET].y, 0);
+                drawObject(objects[BULLET]);
             glPopMatrix();
         }
+
+        // Coloca os inimigos na tela baseado nas suas propriedades
+        for(int i = 3; i < 3+NUMBER_OF_ENEMITES; i++){
+            if(objects[i].visible){
+                glPushMatrix();
+                    glTranslatef(objects[i].x, objects[i].y, 0);
+                    drawObject(objects[i]);
+                glPopMatrix();
+            }
+        }
+
+        if(objects[VITAMIN].visible){
+            glPushMatrix();
+                glTranslatef(objects[VITAMIN].x, objects[VITAMIN].y, 0);
+                drawObject(objects[VITAMIN]);
+            glPopMatrix();
+        }
+    } else if (PLAYER_WON){
+        glPushMatrix();
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            POINT_SIZE = 20;
+            glTranslatef(objects[WON].x, objects[WON].y, 0);
+            drawObject(objects[WON]);
+        glPopMatrix();
+    } else{
+        glPushMatrix();
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            POINT_SIZE = 20;
+            glTranslatef(objects[GAME_OVER].x, objects[GAME_OVER].y, 0);
+            drawObject(objects[GAME_OVER]);
+        glPopMatrix();
     }
 
     glutSwapBuffers();
