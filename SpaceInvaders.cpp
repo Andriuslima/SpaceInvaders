@@ -103,6 +103,8 @@ void drawObject(Object o){
         for(int j = 0; j < largura; j++){ // J e a coluna
             int color;
             color = o.form[i][j];
+            if(color == 4)
+                continue;
             glColor3f(colors[color-1][0], colors[color-1][1], colors[color-1][2]);
 
             int x = ((j+1 - largura/2) * POINT_SIZE);
