@@ -51,6 +51,11 @@
 		<Unit filename="colors.txt" />
 		<Unit filename="enemy01.txt" />
 		<Unit filename="enemy02.txt" />
+		<Unit filename="enemy03.txt" />
+		<Unit filename="enemy04.txt" />
+		<Unit filename="game_over.txt" />
+		<Unit filename="vitamina.txt" />
+		<Unit filename="won.txt" />
 		<Extensions>
 			<code_completion />
 			<debugger />
