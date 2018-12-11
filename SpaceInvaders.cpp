@@ -700,8 +700,7 @@ void init(void){
     readObjects();
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv){
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB );
     glutInitWindowPosition(0,0);
